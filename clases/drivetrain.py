@@ -1,4 +1,8 @@
 #DEVELOPMENT
+<<<<<<< HEAD
+=======
+
+>>>>>>> e81de67d240b9edba17627dbc07885aa8cf79902
 import wpilib
 import rev
 from math import fabs
