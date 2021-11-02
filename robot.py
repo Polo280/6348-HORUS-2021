@@ -1,6 +1,6 @@
 import wpilib
 import rev
-from drivetrain import DriveTrain
+from Clases.drivetrain import DriveTrain    #Clases/drivetrain --> DriveTrain
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self):
