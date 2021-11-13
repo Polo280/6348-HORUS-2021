@@ -30,3 +30,12 @@ class DriveTrain():
 
         self.drive.tankDrive(left * multiplicador, right * multiplicador)
 
+    def move(self, forward: int):
+        if forward == 1:
+            self.drive.tankDrive(-0.5, -0.5)
+        elif forward == 0:
+            pass
+        elif forward == -1:
+            self.drive.tankDrive(0.5, 0.5)
+
+
