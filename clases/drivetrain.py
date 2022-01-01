@@ -26,27 +26,27 @@ class DriveTrain():
 
     def get_left_motor(self, degrees, gatillo):  #GENIUS Combinar esto con smooth_between
         #se asume que para avanzar derecho los dos motores se ponen en 1
-        if degrees <= 90:
+        if 0 < degrees <= 90:
             return gatillo
-        elif degrees <= 180:
+        elif 90 < degrees <= 180:
             return self.smooth_between(180, 90, degrees) * (-1 * gatillo)
-        elif degrees <= 270:
+        elif 180 < degrees <= 270:
             return -1 * gatillo
-        elif degrees <= 360:
+        elif 270 < degrees <= 360:
             return self.smooth_between(270, 360, degrees) * (-1 * gatillo)
         else:
             return 0
 
 
-    def get_right_motor(self, degrees, gatillo):
+    def get_right_motor(self, degrees, gatillo): #get motor power
         #se asume que para avanzar derecho los dos motores se ponen en 1
-        if degrees <= 90:
+        if 0 < degrees <= 90:
             return self.smooth_between(90, 0, degrees) * (-1 * gatillo)
-        elif degrees <= 180:
+        elif 90 < degrees <= 180:
             return (-1 * gatillo)
-        elif degrees <= 270:
+        elif 180 < degrees <= 270:
             return self.smooth_between(180, 270, degrees) * (-1 * gatillo)
-        elif degrees <= 360:
+        elif 270 < degrees <= 360:
             return gatillo
         else:
             return 0
@@ -57,7 +57,7 @@ class DriveTrain():
         if degrees < 0:
             degrees = 360 + degrees
 
-        degrees += 90   # Se suman 90 grados para ...
+        degrees += 90
         if degrees > 360:
             degrees -= 360
 
@@ -65,35 +65,23 @@ class DriveTrain():
 
 
     def manejar(self, xbox1):
-        x = -(xbox1.getX(wpilib.XboxController.Hand.kLeftHand))
+        x = xbox1.getX(wpilib.XboxController.Hand.kLeftHand)
         y = xbox1.getY(wpilib.XboxController.Hand.kLeftHand)
+        self.displayValues()
 
         trigger_left = xbox1.getTriggerAxis(wpilib.XboxController.Hand.kLeftHand)
         trigger_right = xbox1.getTriggerAxis(wpilib.XboxController.Hand.kRightHand)
-        multiplicador = (trigger_left * 0.3) + (trigger_right * 0.7)
+        multiplicador = (trigger_left * 0.5) + (trigger_right * 0.5)
 
-        deadZone = 0.15  #Avoid unwanted movement
-        if math.fabs(x) <= deadZone and math.fabs(y) <= deadZone:
-            x, y = 0, 0
+        deadZone = 0.2  #Avoid unwanted movement
+        if math.fabs(x) < deadZone and math.fabs(y) < deadZone:
+            multiplicador = 0
+            x = 0
+            y = 0
 
-        angle = math.atan2(y, x)
+        angle = math.atan2(y, x) #Obtener angulo a partir de x,y
         heading = self.to_degrees(angle)
+
         left_power = self.get_left_motor(heading, multiplicador)
         right_power = self.get_right_motor(heading, multiplicador)
         self.drive.tankDrive(left_power, right_power)
-
-
-    def displayValues(self):
-        wpilib.SmartDashboard.putNumber("Encoder NEO 1:", self.left_f.getEncoder().getPosition())
-        wpilib.SmartDashboard.putNumber("Temp NEO 1: ", self.left_f.getMotorTemperature())
-
-
-    def seek(self, forward: int):
-        if forward == 1:
-            self.drive.tankDrive(-0.5, -0.5)
-        elif forward == 0:
-            pass
-        elif forward == -1:
-            self.drive.tankDrive(0.5, 0.5)
-        elif forward == 2:
-            self.drive.tankDrive(0.2, -0.2) #Spin
