@@ -14,6 +14,16 @@ class DriveTrain():
         self.left = wpilib.SpeedControllerGroup(self.left_f, self.left_b)
         self.drive = wpilib.drive.DifferentialDrive(self.left, self.right)
 
+        #CIRCUNFERENCE FOR ENCODER CONVERSION
+        self.conversionMetres = 0.2 * 3.1416
+
+        #PID Tuning
+        self.KP = 0.1
+        self.KI = 0.45
+        self.KD = 0.8
+        self.errorSum = 0
+        self.lastError = 0
+
     @staticmethod
     def smooth_between(min, max, degrees):
         # min (angulo menor del intervalo)  1 --> Cuando deg = min, max - deg = intervalo
@@ -66,8 +76,7 @@ class DriveTrain():
 
     def manejar(self, xbox1):
         x = xbox1.getX(wpilib.XboxController.Hand.kLeftHand)
-        y = xbox1.getY(wpilib.XboxController.Hand.kLeftHand)
-        self.displayValues()
+        y = -xbox1.getY(wpilib.XboxController.Hand.kLeftHand)
 
         trigger_left = xbox1.getTriggerAxis(wpilib.XboxController.Hand.kLeftHand)
         trigger_right = xbox1.getTriggerAxis(wpilib.XboxController.Hand.kRightHand)
@@ -79,9 +88,24 @@ class DriveTrain():
             x = 0
             y = 0
 
-        angle = math.atan2(y, x) #Obtener angulo a partir de x,y
+        angle = math.atan2(y, x) #Obtener angulo a partir de x,y con respecto a eje x
         heading = self.to_degrees(angle)
 
         left_power = self.get_left_motor(heading, multiplicador)
         right_power = self.get_right_motor(heading, multiplicador)
         self.drive.tankDrive(left_power, right_power)
+
+    #AUTPILOT
+    def autoStraight(self, reference):
+        averageDist = ((self.right_f.getEncoder().getPosition() + self.left_f.getEncoder().getPosition())/2) * self.conversionMetres
+        error = reference - averageDist
+        self.errorSum += error
+
+        output = self.KP * error
+        #output = (self.KP * error + self.KI * self.errorSum + self.KD * (error - self.lastError))
+        self.lastError = error
+
+        self.left_f.set(output)
+        self.left_b.set(output)
+        self.right_f.set(-output)
+        self.right_b.set(-output)
